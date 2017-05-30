@@ -1,3 +1,4 @@
+/*
 // Copyright (C) 2011-2012 the original author or authors.
 // See the LICENCE.txt file distributed with this work for additional
 // information regarding copyright ownership.
@@ -17,7 +18,8 @@
 package example
 
 import org.apache.spark.storage.StorageLevel
-import org.mkuthan.spark._
+import org.flipkart.spark.KafkaDStreamSink.createKafkaDStreamSink
+import org.flipkart.spark.{KafkaDStreamSource, KafkaPayloadStringCodec, SparkStreamingApplication}
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -33,13 +35,22 @@ class WordCountJob(config: WordCountJobConfig, source: KafkaDStreamSource) exten
     withSparkStreamingContext { (sc, ssc) =>
       val input = source.createSource(ssc, config.inputTopic)
 
+
+      /*input.foreachRDD(rdd => {
+
+        val output = rdd.collect()
+        output.foreach(k => {
+          println(new String(k.key.get, "UTF-8") + "\n" + new String(k.value, "UTF-8"))
+        })
+      })*/
+
       // Option 1: Array[Byte] -> String
       val stringCodec = sc.broadcast(KafkaPayloadStringCodec())
-      val lines = input.flatMap(stringCodec.value.decodeValue(_))
+      val lines = input.flatMap(stringCodec.value.decodeValue)
 
       // Option 2: Array[Byte] -> Specific Avro
-      //val avroSpecificCodec = sc.broadcast(KafkaPayloadAvroSpecificCodec[SomeAvroType]())
-      //val lines = input.flatMap(avroSpecificCodec.value.decodeValue(_))
+      //      val avroSpecificCodec = sc.broadcast(KafkaPayloadAvroSpecificCodec[SomeAvroType]())
+      //      val lines = input.flatMap(avroSpecificCodec.value.decodeValue(_))
 
       val countedWords = WordCount.countWords(
         ssc,
@@ -49,16 +60,16 @@ class WordCountJob(config: WordCountJobConfig, source: KafkaDStreamSource) exten
         config.slideDuration
       )
 
+      countedWords.print()
+
       // encode Kafka payload (e.g: to String or Avro)
       val output = countedWords
         .map(_.toString())
-        .map(stringCodec.value.encodeValue(_))
+        .map(stringCodec.value.encodeValue)
 
       // cache to speed-up processing if action fails
-      output.persist(StorageLevel.MEMORY_ONLY_SER)
-
-      import KafkaDStreamSink._
-      output.sendToKafka(config.sinkKafka, config.outputTopic)
+      input.persist(StorageLevel.MEMORY_ONLY_SER)
+      input.sendToKafka(config.sinkKafka, config.outputTopic)
     }
   }
 
@@ -115,3 +126,4 @@ object WordCountJobConfig {
   }
 
 }
+*/

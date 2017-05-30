@@ -14,29 +14,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.mkuthan.spark
+package org.flipkart.spark
 
+import enricher.KafkaPayload
 import kafka.serializer.DefaultDecoder
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka.KafkaUtils
 
-class KafkaDStreamSource(config: Map[String, String]) {
+class KafkaDStreamSource(config: Map[String, String], topics: Set[String]) {
 
-  def createSource(ssc: StreamingContext, topic: String): DStream[KafkaPayload] = {
+  def createSource(ssc: StreamingContext): DStream[KafkaPayload] = {
     val kafkaParams = config
-    val kafkaTopics = Set(topic)
 
     KafkaUtils.
       createDirectStream[Array[Byte], Array[Byte], DefaultDecoder, DefaultDecoder](
       ssc,
       kafkaParams,
-      kafkaTopics).
+      topics).
       map(dstream => KafkaPayload(Option(dstream._1), dstream._2))
   }
 
 }
 
 object KafkaDStreamSource {
-  def apply(config: Map[String, String]): KafkaDStreamSource = new KafkaDStreamSource(config)
+  def apply(config: Map[String, String], topic: Set[String]): KafkaDStreamSource = new KafkaDStreamSource(config, topic)
 }

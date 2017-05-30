@@ -14,20 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.apache.spark.streaming
+package enricher
 
-import org.apache.spark.util.ManualClock
-
-import scala.concurrent.duration.FiniteDuration
-
-/**
-  * Ugly hack to access Spark private ManualClock class.
-  */
-object ClockWrapper {
-
-  def advance(ssc: StreamingContext, timeToAdd: FiniteDuration): Unit = {
-    val manualClock = ssc.scheduler.clock.asInstanceOf[ManualClock]
-    manualClock.advance(timeToAdd.toMillis)
-  }
-
-}
+case class KafkaPayload(key: Option[Array[Byte]], value: Array[Byte])

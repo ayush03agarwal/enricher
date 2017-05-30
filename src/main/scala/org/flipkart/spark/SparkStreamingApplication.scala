@@ -14,22 +14,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.mkuthan.spark
+package org.flipkart.spark
 
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.SparkContext
+import org.apache.spark.streaming.{Seconds, StreamingContext}
 
-trait SparkApplication {
+import scala.concurrent.duration.FiniteDuration
 
-  def sparkConfig: Map[String, String]
+trait SparkStreamingApplication extends SparkApplication {
 
-  def withSparkContext(f: SparkContext => Unit): Unit = {
-    val conf = new SparkConf()
+  def streamingBatchDuration: FiniteDuration
 
-    sparkConfig.foreach { case (k, v) => conf.setIfMissing(k, v) }
+  def streamingCheckpointDir: String
 
-    val sc = new SparkContext(conf)
+  def withSparkStreamingContext(f: (SparkContext, StreamingContext) => Unit): Unit = {
+    withSparkContext { sc =>
+      val ssc = new StreamingContext(sc, Seconds(streamingBatchDuration.toSeconds))
+      ssc.checkpoint(streamingCheckpointDir)
 
-    f(sc)
+      f(sc, ssc)
+
+      ssc.start()
+      ssc.awaitTermination()
+    }
   }
 
 }

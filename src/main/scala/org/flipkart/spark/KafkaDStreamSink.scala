@@ -14,37 +14,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.mkuthan.spark
+package org.flipkart.spark
 
+import enricher.KafkaPayload
 import org.apache.kafka.clients.producer.{Callback, ProducerRecord, RecordMetadata}
-import org.apache.log4j.Logger
 import org.apache.spark.TaskContext
-import org.apache.spark.streaming.dstream.DStream
+import org.apache.spark.rdd.RDD
 
-class KafkaDStreamSink(dstream: DStream[KafkaPayload]) {
+class KafkaDStreamSink(rdd: RDD[KafkaPayload]) {
 
   def sendToKafka(config: Map[String, String], topic: String): Unit = {
-    dstream.foreachRDD { rdd =>
-      rdd.foreachPartition { records =>
-        val producer = KafkaProducerFactory.getOrCreateProducer(config)
-
-        // ugly hack, see: https://github.com/apache/spark/pull/5927
-        val context = TaskContext.get
-        val logger = Logger.getLogger(getClass)
-
-        val callback = new KafkaDStreamSinkExceptionHandler
-
-        logger.debug(s"Send Spark partition: ${context.partitionId} to Kafka topic: $topic")
-        val metadata = records.map { record =>
-          callback.throwExceptionIfAny()
-          producer.send(new ProducerRecord(topic, record.key.orNull, record.value), callback)
-        }.toList
-
-        logger.debug(s"Flush Spark partition: ${context.partitionId} to Kafka topic: $topic")
-        metadata.foreach { metadata => metadata.get() }
-
+    rdd.foreachPartition { records =>
+      val producer = KafkaProducerFactory.getOrCreateProducer(config)
+      val context = TaskContext.get
+      println(s"Send Spark partition: ${context.partitionId} to Kafka topic: $topic")
+      val callback = new KafkaDStreamSinkExceptionHandler
+      val metadata = records.map { record =>
         callback.throwExceptionIfAny()
-      }
+        producer.send(new ProducerRecord(topic, record.key.orNull, record.value), callback)
+      }.toList
+      metadata.foreach { metadata => metadata.get() }
+      callback.throwExceptionIfAny()
     }
   }
 }
@@ -52,9 +42,8 @@ class KafkaDStreamSink(dstream: DStream[KafkaPayload]) {
 object KafkaDStreamSink {
 
   import scala.language.implicitConversions
-
-  implicit def createKafkaDStreamSink(dstream: DStream[KafkaPayload]): KafkaDStreamSink = {
-    new KafkaDStreamSink(dstream)
+  implicit def createKafkaDStreamSink(rdd: RDD[KafkaPayload]): KafkaDStreamSink = {
+    new KafkaDStreamSink(rdd)
   }
 
 }

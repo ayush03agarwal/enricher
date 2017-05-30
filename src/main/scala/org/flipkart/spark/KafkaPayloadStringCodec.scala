@@ -14,9 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.mkuthan.spark
+package org.flipkart.spark
 
 import com.twitter.bijection.{Injection, StringCodec}
+import enricher.KafkaPayload
 import org.apache.log4j.Logger
 
 import scala.util.{Failure, Success}

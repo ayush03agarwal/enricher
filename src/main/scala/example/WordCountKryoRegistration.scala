@@ -18,7 +18,7 @@ package example
 
 import com.esotericsoftware.kryo.Kryo
 import org.apache.spark.serializer.KryoRegistrator
-import org.mkuthan.spark.KafkaPayloadStringCodec
+import org.flipkart.spark.KafkaPayloadStringCodec
 
 
 class WordCountKryoRegistration extends KryoRegistrator {

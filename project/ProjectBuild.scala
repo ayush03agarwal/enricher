@@ -24,7 +24,7 @@ object ProjectBuild extends Build {
     val spark = "1.6.0"
   }
 
-  val projectName = "example-spark-kafka"
+  val projectName = "enricher"
 
   val commonSettings = Seq(
     version := "1.0",
@@ -57,12 +57,12 @@ object ProjectBuild extends Build {
     "org.apache.spark" %% "spark-streaming" % Versions.spark,
     "org.apache.spark" %% "spark-streaming-kafka" % Versions.spark,
 
+    "com.google.guava" % "guava" % "19.0",
     "com.twitter" %% "bijection-avro" % "0.8.1",
     "com.twitter" %% "chill-avro" % "0.7.2",
 
     "com.typesafe" % "config" % "1.2.1",
     "net.ceedubs" %% "ficus" % "1.1.1",
-
     "ch.qos.logback" % "logback-classic" % "0.9.24",
 
     "org.scalatest" %% "scalatest" % "2.2.4" % "test"

@@ -1,0 +1,3 @@
+package enricher
+
+trait Sink

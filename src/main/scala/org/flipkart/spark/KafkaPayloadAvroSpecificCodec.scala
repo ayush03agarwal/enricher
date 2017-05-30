@@ -14,10 +14,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package org.mkuthan.spark
+package org.flipkart.spark
 
 import com.twitter.bijection.Injection
 import com.twitter.bijection.avro.SpecificAvroCodecs
+import enricher.KafkaPayload
 import org.apache.avro.specific.SpecificRecordBase
 import org.apache.log4j.Logger
 
